@@ -118,6 +118,17 @@ class Gmailieer:
 
     parser_send.set_defaults (func = self.send)
 
+    # draft
+
+    parser_draft = subparsers.add_parser ('draft', parents = [common],
+        description = 'Read a MIME message from STDIN and send.',
+        help = 'send a MIME message read from STDIN.')
+
+    parser_draft.add_argument ('-d', '--dry-run', action='store_true',
+        default = False, help = 'do not actually send message')
+
+    parser_draft.set_defaults (func = self.draft)
+
     # sync
     parser_sync = subparsers.add_parser ('sync', parents = [common],
         description = 'sync',
@@ -839,6 +850,26 @@ class Gmailieer:
       self.get_meta([msg['id']])
 
     self.vprint ("message sent successfully: %s" % msg['id'])
+
+  def draft (self, args):
+    self.setup (args, args.dry_run, True, True)
+    self.remote.get_labels ()
+
+    msg = sys.stdin.buffer.read()
+
+    # check if in-reply-to is set and find threadId
+    draftId = None
+
+
+
+    import email
+    eml = email.message_from_bytes(msg)
+    if 'Draft-Id' in eml:
+        draftId = eml['Draft-Id']
+
+    msg = self.remote.draft(msg, draftId)
+
+    print(msg['id'])
 
   def set (self, args):
     args.credentials = '' # for setup()
