@@ -740,7 +740,7 @@ class Remote:
     return self.service.users().messages().send(userId = self.account, body = message).execute()
 
   @__require_auth__
-  def draft (self, message, draftId):
+  def create_draft (self, message, draftId):
     """
     Draft message
 
@@ -755,6 +755,28 @@ class Remote:
     message = { 'raw': base64.urlsafe_b64encode(message).decode() }
 
     try:
-        return self.service.users().drafts().update(userId = self.account, id = draftId, body =  {'id': draftId, 'message': message}).execute()
+        resp = self.service.users().drafts().create(userId = self.account, body =  {'id': draftId, 'message': message}).execute()
+        return resp['id']
     except googleapiclient.errors.HttpError as e:
-        return self.service.users().drafts().create(userId = self.account, body =  {'id': draftId, 'message': message}).execute()
+        return False
+
+  @__require_auth__
+  def update_draft (self, message, draftId):
+    """
+    Draft message
+
+    message: MIME message as bytes
+
+    Returns:
+
+      Message
+    """
+    import base64
+
+    message = { 'raw': base64.urlsafe_b64encode(message).decode() }
+
+    try:
+        resp = self.service.users().drafts().update(userId = self.account, id = draftId, body =  {'id': draftId, 'message': message}).execute()
+        return resp['id']
+    except googleapiclient.errors.HttpError as e:
+        return False

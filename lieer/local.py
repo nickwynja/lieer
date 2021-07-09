@@ -687,5 +687,24 @@ class Local:
       else:
         return False
 
+  def get_drafts (self):
+    self.drafts = []
 
+    for (_, _, fnames) in os.walk (os.path.join (self.wd, 'Drafts', 'new')):
+      _fnames = ( 'Drafts/new/' + f for f in fnames )
+      self.drafts.extend (_fnames)
 
+    return self.drafts
+
+  def update_draft_id (self, file, msg, id):
+    import email
+
+    msg.add_header('X-Draft-ID', id)
+
+    # try:
+    with open(file, 'w') as out:
+        print(f"writing to {file}")
+        gen = email.generator.Generator(out)
+        gen.flatten(msg)
+    # except:
+    #     print('failed')
